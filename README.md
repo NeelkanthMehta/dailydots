@@ -1,43 +1,41 @@
-# React + TypeScript + Vite
+# Daily Dots
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Daily Dots is a lightweight daily journal with mood tracking, built with React, TypeScript, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Create and update one journal entry per date.
+- Record a mood with each entry.
+- Browse, edit, and delete journal entries.
+- Persistent light and dark themes.
+- Simple four-dot Dailydots logo in the shared navigation.
+- Route-aware page titles:
+  - `Home - Dailydots`
+  - `My Journals - Dailydots`
+  - `Add New - Dailydots`
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Install dependencies and start the Vite development server:
 
-## Expanding the ESLint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Validation
 
-```js
-export default defineConfig([
-  # Daily Dots
+Run the production build and lint checks:
 
-  Daily Dots is a lightweight daily journal with mood tracking, built with React, TypeScript, Vite, and Tailwind CSS.
+```bash
+npm run build
+npm run lint
+```
 
-  ## Development
+## Visual system
 
-  ```bash
-  npm install
-  npm run dev
-  ```
+The interface uses Tailwind's neutral grey scale for page backgrounds, surfaces, borders, and text. A restrained blue primary scale is reserved for actions and selected states. The four-dot logo uses the primary blue tokens and stays static at the left side of the shared navigation across all routes.
 
-  Run the production checks with:
+Theme preferences are managed by the `useTheme` hook and persisted locally.
 
-  ```bash
-  npm run build
-  npm run lint
-  ```
-
-  ## Visual system
-
-  The interface uses Tailwind's neutral grey scale for page backgrounds, surfaces, borders, and text. A restrained blue primary scale is reserved for actions and selected states. Light and dark theme preferences are managed by the `useTheme` hook and persisted locally.
-
-  See the [style guide](src/styles/STYLEGUIDE.md) for the color roles, typography, layout, component, and accessibility conventions.
-])
+See the [style guide](src/styles/STYLEGUIDE.md) for color roles, typography, logo usage, layout, component, and accessibility conventions.
