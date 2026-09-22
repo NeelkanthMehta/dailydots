@@ -16,7 +16,7 @@ export function JournalEntryCard({ entry, onDelete, isDeleting }: JournalEntryCa
     <Card className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             {formatDisplayDate(entry.date)}
           </p>
           <MoodBadge emoji={entry.mood.emoji} label={entry.mood.label} className="mt-1" />
@@ -37,7 +37,7 @@ export function JournalEntryCard({ entry, onDelete, isDeleting }: JournalEntryCa
           </Button>
         </div>
       </div>
-      <p className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
+      <p className="whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300">
         {entry.content}
       </p>
     </Card>

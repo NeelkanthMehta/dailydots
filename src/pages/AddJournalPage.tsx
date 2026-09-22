@@ -22,17 +22,15 @@ export function AddJournalPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
       <header>
-        <h1 className="text-2xl font-semibold">
-          {editDate ? 'Edit journal entry' : 'Add new journal'}
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="text-2xl font-semibold">Add New - Dailydots</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Only one entry is kept per day — saving on a date that already has an entry updates it.
         </p>
       </header>
 
       <Card>
         {isLoading && editDate ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading…</p>
         ) : (
           <JournalEntryForm
             key={existingEntry?.date ?? editDate ?? 'new'}

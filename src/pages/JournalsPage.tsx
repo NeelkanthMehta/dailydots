@@ -18,16 +18,16 @@ export function JournalsPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">My Journals</h1>
+        <h1 className="text-2xl font-semibold">My Journals - Dailydots</h1>
         <Link to="/journals/new">
           <Button>Add new</Button>
         </Link>
       </header>
 
       {isLoading ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading…</p>
       ) : entries.length === 0 ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           No entries yet. Start your first journal entry to see it here.
         </p>
       ) : (

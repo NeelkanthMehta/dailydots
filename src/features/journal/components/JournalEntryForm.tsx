@@ -59,7 +59,7 @@ export function JournalEntryForm({
           onChange={(event) => setDate(event.target.value)}
           className="max-w-xs"
         />
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
           Saving on a date with an existing entry updates it instead of creating a new one.
         </p>
       </div>
