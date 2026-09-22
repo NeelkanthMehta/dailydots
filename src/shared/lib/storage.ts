@@ -16,3 +16,11 @@ export function writeJson<T>(key: string, value: T): void {
     // Ignore quota/serialization errors; data simply won't persist.
   }
 }
+
+export function removeJson(key: string): void {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Ignore storage access errors.
+  }
+}

@@ -23,6 +23,19 @@ npm install
 npm run dev
 ```
 
+Set these Vite environment variables before starting the app:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-publishable-key
+```
+
+The journal is stored in the Supabase `journal_entries` table. On the first load
+after configuration, the app creates an anonymous user session, uploads any
+entries found under the previous `dailydots:journal-entries` localStorage key,
+and removes that local copy only after the upload succeeds. Anonymous Auth must
+be enabled in the Supabase project for this migration to run.
+
 ## Validation
 
 Run the production build and lint checks:

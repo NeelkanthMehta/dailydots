@@ -10,7 +10,7 @@ import type { JournalEntry, JournalEntryInput } from '../features/journal/types'
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { data: entries = [], isLoading } = useJournalEntries();
+  const { data: entries = [], isLoading, error } = useJournalEntries();
   const upsertEntry = useUpsertJournalEntry();
   const deleteEntry = useDeleteJournalEntry();
 
@@ -36,6 +36,15 @@ export function HomePage() {
           {entries.length} {entries.length === 1 ? 'entry' : 'entries'} logged so far.
         </p>
       </header>
+
+      {error && (
+        <Card>
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Supabase sync is unavailable. Enable Anonymous Sign-Ins in Supabase, then refresh
+            this page to transfer your local entries.
+          </p>
+        </Card>
+      )}
 
       <Card>
           <h2 className="mb-3 text-sm font-semibold text-neutral-900 dark:text-neutral-100">

@@ -1,60 +1,125 @@
-import { readJson, writeJson } from '../../shared/lib/storage';
+import { supabase } from '../../shared/lib/supabase';
+import { readJson, removeJson } from '../../shared/lib/storage';
 import type { JournalEntry, JournalEntryInput } from './types';
 
-// COPILOT_PROMPT: localStorage-backed data service for journal entries
-// Assumption: one entry per calendar date, keyed by ISO date string.
-// This module is the only place that knows about the storage mechanism,
-// so it can be swapped for Supabase calls later without touching UI code.
+// COPILOT_PROMPT: Supabase-backed data service with one-time localStorage import
+// Assumption: anonymous Supabase Auth is enabled for this project.
 
 const STORAGE_KEY = 'dailydots:journal-entries';
 
 type EntriesByDate = Record<string, JournalEntry>;
+type JournalRow = {
+  date: string;
+  mood: JournalEntry['mood'];
+  content: string;
+  created_at: string;
+  updated_at: string;
+};
 
-function readAll(): EntriesByDate {
-  return readJson<EntriesByDate>(STORAGE_KEY, {});
+async function getUserId(): Promise<string> {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+
+  if (sessionData.session?.user.id) return sessionData.session.user.id;
+
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if (error || !data.user) {
+    throw error ?? new Error('Unable to create an anonymous journal session.');
+  }
+
+  return data.user.id;
 }
 
-function writeAll(entries: EntriesByDate): void {
-  writeJson(STORAGE_KEY, entries);
+function toJournalEntry(row: JournalRow): JournalEntry {
+  return {
+    date: row.date,
+    mood: row.mood,
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-/** Simulates async I/O so callers (React Query) behave the same as with a remote backend. */
-function resolveAsync<T>(value: T): Promise<T> {
-  return Promise.resolve(value);
+async function importLocalEntries(userId: string): Promise<void> {
+  const localEntries = Object.values(readJson<EntriesByDate>(STORAGE_KEY, {}));
+  if (localEntries.length === 0) return;
+
+  const rows = localEntries.map((entry) => ({
+    user_id: userId,
+    date: entry.date,
+    mood: entry.mood,
+    content: entry.content,
+    created_at: entry.createdAt,
+    updated_at: entry.updatedAt,
+  }));
+
+  const { error } = await supabase.from('journal_entries').upsert(rows, {
+    onConflict: 'user_id,date',
+  });
+  if (error) throw error;
+
+  removeJson(STORAGE_KEY);
 }
 
 export async function listJournalEntries(): Promise<JournalEntry[]> {
-  const entries = Object.values(readAll());
-  entries.sort((a, b) => b.date.localeCompare(a.date));
-  return resolveAsync(entries);
+  const userId = await getUserId();
+  await importLocalEntries(userId);
+
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .select('date, mood, content, created_at, updated_at')
+    .eq('user_id', userId)
+    .order('date', { ascending: false });
+  if (error) throw error;
+
+  return (data as JournalRow[]).map(toJournalEntry);
 }
 
 export async function getJournalEntry(date: string): Promise<JournalEntry | null> {
-  const entries = readAll();
-  return resolveAsync(entries[date] ?? null);
+  const userId = await getUserId();
+  await importLocalEntries(userId);
+
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .select('date, mood, content, created_at, updated_at')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .maybeSingle();
+  if (error) throw error;
+
+  return data ? toJournalEntry(data as JournalRow) : null;
 }
 
 export async function upsertJournalEntry(input: JournalEntryInput): Promise<JournalEntry> {
-  const entries = readAll();
-  const existing = entries[input.date];
+  const userId = await getUserId();
+  const existing = await getJournalEntry(input.date);
   const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .upsert(
+      {
+        user_id: userId,
+        date: input.date,
+        mood: input.mood,
+        content: input.content,
+        created_at: existing?.createdAt ?? now,
+        updated_at: now,
+      },
+      { onConflict: 'user_id,date' },
+    )
+    .select('date, mood, content, created_at, updated_at')
+    .single();
+  if (error) throw error;
 
-  const entry: JournalEntry = {
-    date: input.date,
-    mood: input.mood,
-    content: input.content,
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
-  };
-
-  entries[input.date] = entry;
-  writeAll(entries);
-  return resolveAsync(entry);
+  return toJournalEntry(data as JournalRow);
 }
 
 export async function deleteJournalEntry(date: string): Promise<void> {
-  const entries = readAll();
-  delete entries[date];
-  writeAll(entries);
-  return resolveAsync(undefined);
+  const userId = await getUserId();
+  const { error } = await supabase
+    .from('journal_entries')
+    .delete()
+    .eq('user_id', userId)
+    .eq('date', date);
+  if (error) throw error;
 }

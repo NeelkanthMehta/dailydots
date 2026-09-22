@@ -9,7 +9,7 @@ import { MoodCalendar } from '../features/journal/components/MoodCalendar';
 
 export function JournalsPage() {
   const [searchParams] = useSearchParams();
-  const { data: entries = [], isLoading } = useJournalEntries();
+  const { data: entries = [], isLoading, error } = useJournalEntries();
   const deleteEntry = useDeleteJournalEntry();
   const selectedDate = searchParams.get('date');
 
@@ -39,7 +39,12 @@ export function JournalsPage() {
 
       <MoodCalendar entries={entries} />
 
-      {isLoading ? (
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">
+          Supabase sync is unavailable. Enable Anonymous Sign-Ins in Supabase, then refresh this
+          page to transfer your local entries.
+        </p>
+      ) : isLoading ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading…</p>
       ) : entries.length === 0 ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
