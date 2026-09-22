@@ -4,6 +4,7 @@ import { JournalEntryCard } from '../features/journal/components/JournalEntryCar
 import { Link } from 'react-router-dom';
 import { Button } from '../shared/ui/Button';
 import type { JournalEntry } from '../features/journal/types';
+import { MoodCalendar } from '../features/journal/components/MoodCalendar';
 
 export function JournalsPage() {
   const { data: entries = [], isLoading } = useJournalEntries();
@@ -23,6 +24,8 @@ export function JournalsPage() {
           <Button>Add new</Button>
         </Link>
       </header>
+
+      <MoodCalendar entries={entries} />
 
       {isLoading ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading…</p>
