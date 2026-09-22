@@ -1,14 +1,26 @@
+import { useEffect } from 'react';
 import { useJournalEntries } from '../features/journal/hooks/useJournalEntries';
 import { useDeleteJournalEntry } from '../features/journal/hooks/useDeleteJournalEntry';
 import { JournalEntryCard } from '../features/journal/components/JournalEntryCard';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '../shared/ui/Button';
 import type { JournalEntry } from '../features/journal/types';
 import { MoodCalendar } from '../features/journal/components/MoodCalendar';
 
 export function JournalsPage() {
+  const [searchParams] = useSearchParams();
   const { data: entries = [], isLoading } = useJournalEntries();
   const deleteEntry = useDeleteJournalEntry();
+  const selectedDate = searchParams.get('date');
+
+  useEffect(() => {
+    if (!selectedDate || isLoading) return;
+
+    document.getElementById(`journal-${selectedDate}`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, [isLoading, selectedDate]);
 
   function handleDelete(date: string) {
     if (window.confirm('Delete this journal entry? This cannot be undone.')) {
@@ -36,12 +48,13 @@ export function JournalsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {entries.map((entry: JournalEntry) => (
-            <JournalEntryCard
-              key={entry.date}
-              entry={entry}
-              onDelete={handleDelete}
-              isDeleting={deleteEntry.isPending && deleteEntry.variables === entry.date}
-            />
+            <div key={entry.date} id={`journal-${entry.date}`} className="scroll-mt-6">
+              <JournalEntryCard
+                entry={entry}
+                onDelete={handleDelete}
+                isDeleting={deleteEntry.isPending && deleteEntry.variables === entry.date}
+              />
+            </div>
           ))}
         </div>
       )}
