@@ -41,8 +41,7 @@ export function JournalsPage() {
 
       {error ? (
         <p className="text-sm text-red-600 dark:text-red-400">
-          Supabase sync is unavailable. Enable Anonymous Sign-Ins in Supabase, then refresh this
-          page to transfer your local entries.
+          Unable to sync your journal right now. Please refresh or try again.
         </p>
       ) : isLoading ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Loading…</p>

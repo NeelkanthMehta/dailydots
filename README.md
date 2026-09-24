@@ -36,6 +36,12 @@ entries found under the previous `dailydots:journal-entries` localStorage key,
 and removes that local copy only after the upload succeeds. Anonymous Auth must
 be enabled in the Supabase project for this migration to run.
 
+To let users save their journal with an email, use the "Save your journal" link
+in the nav bar. This links an email to the existing anonymous session via a
+magic link, preserving all previously synced entries under the same account.
+For the email link to work, add the app's origin to the Supabase project's
+Auth **Site URL** and **Redirect URLs** settings.
+
 ## Validation
 
 Run the production build and lint checks:

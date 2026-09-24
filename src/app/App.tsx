@@ -4,6 +4,7 @@ import { HomePage } from '../pages/HomePage';
 import { JournalsPage } from '../pages/JournalsPage';
 import { AddJournalPage } from '../pages/AddJournalPage';
 import { useTheme } from '../shared/hooks/useTheme';
+import { EmailSignInForm } from '../features/auth/components/EmailSignInForm';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -57,14 +58,17 @@ export function App() {
               </NavLink>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label="Toggle color theme"
-            className="rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
+          <div className="flex items-center gap-3">
+            <EmailSignInForm />
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Toggle color theme"
+              className="rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
       </nav>
 

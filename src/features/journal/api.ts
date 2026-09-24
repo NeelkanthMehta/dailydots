@@ -1,4 +1,5 @@
 import { supabase } from '../../shared/lib/supabase';
+import { ensureSession } from '../../shared/lib/authSession';
 import { readJson, removeJson } from '../../shared/lib/storage';
 import type { JournalEntry, JournalEntryInput } from './types';
 
@@ -16,18 +17,21 @@ type JournalRow = {
   updated_at: string;
 };
 
-async function getUserId(): Promise<string> {
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError) throw sessionError;
-
-  if (sessionData.session?.user.id) return sessionData.session.user.id;
-
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error || !data.user) {
-    throw error ?? new Error('Unable to create an anonymous journal session.');
+/** Distinguishes Supabase sync failures from application errors so the UI can react appropriately. */
+export class JournalSyncError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = 'JournalSyncError';
   }
+}
 
-  return data.user.id;
+async function getUserId(): Promise<string> {
+  try {
+    const session = await ensureSession();
+    return session.user.id;
+  } catch (cause) {
+    throw new JournalSyncError('Unable to establish a journal session.', { cause });
+  }
 }
 
 function toJournalEntry(row: JournalRow): JournalEntry {
@@ -40,7 +44,15 @@ function toJournalEntry(row: JournalRow): JournalEntry {
   };
 }
 
-async function importLocalEntries(userId: string): Promise<void> {
+// Runs the localStorage import at most once per browser session, across concurrent callers.
+let importOnce: Promise<void> | null = null;
+
+function importLocalEntries(userId: string): Promise<void> {
+  if (!importOnce) importOnce = doImportLocalEntries(userId);
+  return importOnce;
+}
+
+async function doImportLocalEntries(userId: string): Promise<void> {
   const localEntries = Object.values(readJson<EntriesByDate>(STORAGE_KEY, {}));
   if (localEntries.length === 0) return;
 
@@ -56,7 +68,7 @@ async function importLocalEntries(userId: string): Promise<void> {
   const { error } = await supabase.from('journal_entries').upsert(rows, {
     onConflict: 'user_id,date',
   });
-  if (error) throw error;
+  if (error) throw new JournalSyncError('Unable to import local journal entries.', { cause: error });
 
   removeJson(STORAGE_KEY);
 }
@@ -70,7 +82,7 @@ export async function listJournalEntries(): Promise<JournalEntry[]> {
     .select('date, mood, content, created_at, updated_at')
     .eq('user_id', userId)
     .order('date', { ascending: false });
-  if (error) throw error;
+  if (error) throw new JournalSyncError('Unable to load journal entries.', { cause: error });
 
   return (data as JournalRow[]).map(toJournalEntry);
 }
@@ -85,7 +97,7 @@ export async function getJournalEntry(date: string): Promise<JournalEntry | null
     .eq('user_id', userId)
     .eq('date', date)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw new JournalSyncError('Unable to load the journal entry.', { cause: error });
 
   return data ? toJournalEntry(data as JournalRow) : null;
 }
@@ -109,7 +121,7 @@ export async function upsertJournalEntry(input: JournalEntryInput): Promise<Jour
     )
     .select('date, mood, content, created_at, updated_at')
     .single();
-  if (error) throw error;
+  if (error) throw new JournalSyncError('Unable to save the journal entry.', { cause: error });
 
   return toJournalEntry(data as JournalRow);
 }
@@ -121,5 +133,5 @@ export async function deleteJournalEntry(date: string): Promise<void> {
     .delete()
     .eq('user_id', userId)
     .eq('date', date);
-  if (error) throw error;
+  if (error) throw new JournalSyncError('Unable to delete the journal entry.', { cause: error });
 }
